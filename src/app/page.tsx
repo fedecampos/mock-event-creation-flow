@@ -325,7 +325,7 @@ export default function EventCreationPage() {
                 />
 
                 {/* DateTime Card */}
-                <div className="bg-white border rounded-[18px] p-3.5 overflow-hidden">
+                <div className="bg-white border rounded-[18px] px-3.5 pb-3.5 pt-3 md:px-3.5 md:pb-3.5 md:pt-3.5 overflow-hidden">
                   {/* Start Row */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-0 sm:justify-between pb-3.5 border-b">
                     <div className="pl-1">
@@ -380,20 +380,12 @@ export default function EventCreationPage() {
                           End
                         </span>
                       </div>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Switch
-                            checked={showEndDate}
-                            onCheckedChange={handleShowEndDateChange}
-                            aria-label="Toggle end date"
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          {showEndDate
-                            ? "End date and time are visible on the event page"
-                            : "End date and time are hidden on the event page"}
-                        </TooltipContent>
-                      </Tooltip>
+                      <Switch
+                        checked={showEndDate}
+                        onCheckedChange={handleShowEndDateChange}
+                        aria-label="Toggle end date visibility"
+                      />
+                      <EndDateTooltip showEndDate={showEndDate} />
                     </div>
                     <div
                       className={`gap-2 w-full sm:w-[300px] ${
@@ -500,28 +492,30 @@ export default function EventCreationPage() {
               <div className="flex flex-col gap-1.5">
                 <label className="font-bold text-sm text-black">Tickets</label>
                 {/* Show existing tickets as cards with drag and drop */}
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={tickets.map((t) => t.id)}
-                    strategy={verticalListSortingStrategy}
+                {tickets.length > 0 && (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
                   >
-                    <div className="flex flex-col gap-2">
-                      {tickets.map((ticket) => (
-                        <SortableTicketDisplay
-                          key={ticket.id}
-                          ticket={ticket}
-                          onEdit={() => handleOpenTicketModal(ticket)}
-                          onDelete={() => handleDeleteTicket(ticket.id)}
-                          onDuplicate={() => handleDuplicateTicket(ticket)}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
+                    <SortableContext
+                      items={tickets.map((t) => t.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="flex flex-col gap-2">
+                        {tickets.map((ticket) => (
+                          <SortableTicketDisplay
+                            key={ticket.id}
+                            ticket={ticket}
+                            onEdit={() => handleOpenTicketModal(ticket)}
+                            onDelete={() => handleDeleteTicket(ticket.id)}
+                            onDuplicate={() => handleDuplicateTicket(ticket)}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )}
                 {/* Always show Add Ticket button */}
                 <ActionButton
                   icon={<Plus className="w-4 h-4" />}
@@ -536,33 +530,7 @@ export default function EventCreationPage() {
                   <label className="font-bold text-sm text-black">
                     Visibility
                   </label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        aria-label="Visibility options info"
-                        className="cursor-default"
-                      >
-                        <CircleHelp className="w-4 h-4 text-gray" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" align="start">
-                      <div className="flex flex-col gap-1.5">
-                        <p>
-                          <span className="font-semibold">Public:</span>{" "}
-                          Searchable on TickPick Marketplace.
-                        </p>
-                        <p>
-                          <span className="font-semibold">Private:</span> Only
-                          accessible via link.
-                        </p>
-                        <p>
-                          <span className="font-semibold">Draft:</span> Saved,
-                          but not ready for purchase.
-                        </p>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
+                  <VisibilityTooltip />
                 </div>
                 <div className="flex gap-3">
                   <VisibilityRadio
@@ -932,5 +900,64 @@ function VisibilityRadio({
         )}
       </AnimatePresence>
     </button>
+  );
+}
+
+function EndDateTooltip({ showEndDate }: { showEndDate: boolean }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Tooltip open={open} onOpenChange={setOpen}>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label="End date visibility info"
+          className="cursor-default"
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          <CircleHelp className="w-4 h-4 text-gray" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="start">
+        {showEndDate
+          ? "End date and time are visible on the event page"
+          : "End date and time are hidden on the event page"}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function VisibilityTooltip() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Tooltip open={open} onOpenChange={setOpen}>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label="Visibility options info"
+          className="cursor-default"
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          <CircleHelp className="w-4 h-4 text-gray" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="start">
+        <div className="flex flex-col gap-1.5">
+          <p>
+            <span className="font-semibold">Public:</span> Searchable on
+            TickPick Marketplace.
+          </p>
+          <p>
+            <span className="font-semibold">Private:</span> Only accessible via
+            link.
+          </p>
+          <p>
+            <span className="font-semibold">Draft:</span> Saved, but not ready
+            for purchase.
+          </p>
+        </div>
+      </TooltipContent>
+    </Tooltip>
   );
 }
