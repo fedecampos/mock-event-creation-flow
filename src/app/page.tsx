@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import {
   Plus,
@@ -66,7 +66,22 @@ import { TicketModal, type Ticket } from "@/components/ticket-modal";
 
 type VisibilityOption = "public" | "private" | "draft";
 
+// Hook to detect if viewport is mobile (< 640px / sm breakpoint)
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => setIsMobile(window.innerWidth < 640);
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
+
+  return isMobile;
+}
+
 export default function EventCreationPage() {
+  const isMobile = useIsMobile();
   const [visibility, setVisibility] = useState<VisibilityOption>("public");
   const [startDate, setStartDate] = useState<Date | undefined>(
     new Date(2024, 11, 3) // Dec 3, 2024
@@ -333,7 +348,7 @@ export default function EventCreationPage() {
                         </PopoverTrigger>
                         <PopoverContent
                           className="w-auto p-0 rounded-[20px]"
-                          align="end"
+                          align={isMobile ? "start" : "center"}
                           sideOffset={8}
                         >
                           <Calendar
@@ -409,7 +424,7 @@ export default function EventCreationPage() {
                         </PopoverTrigger>
                         <PopoverContent
                           className="w-auto p-0 rounded-[20px]"
-                          align="end"
+                          align={isMobile ? "start" : "center"}
                           sideOffset={8}
                         >
                           <Calendar
