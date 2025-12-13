@@ -73,8 +73,10 @@ function TimePicker({
       <PopoverTrigger asChild disabled={disabled}>
         <button
           className={cn(
-            "flex-1 h-10 bg-light-gray rounded-[10px] flex items-center justify-center px-4 gap-1 overflow-hidden hover:bg-soft-gray transition-colors duration-200 ease cursor-pointer",
-            disabled && "opacity-50 cursor-not-allowed",
+            "flex-1 h-10 bg-light-gray rounded-[10px] flex items-center justify-center px-4 gap-1 overflow-hidden transition-colors duration-200 ease",
+            disabled
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-soft-gray cursor-pointer",
             className
           )}
         >
@@ -101,7 +103,7 @@ function TimePicker({
             <button
               onClick={() => handleSelect(undefined)}
               className={cn(
-                "w-full px-4 py-2 text-sm font-medium text-center transition-colors duration-200 ease select-none rounded-[16px]",
+                "w-full px-4 py-2 text-sm font-medium text-center transition-colors duration-200 ease select-none rounded-[16px] cursor-pointer",
                 !value
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-light-gray text-gray"
@@ -118,10 +120,10 @@ function TimePicker({
                 data-selected={isSelected}
                 onClick={() => handleSelect(time)}
                 className={cn(
-                  "w-full px-4 py-2 text-sm font-medium text-center transition-colors duration-200 ease select-none rounded-[16px]",
+                  "w-full px-4 py-2 text-sm text-center transition-colors duration-200 ease select-none rounded-[16px] cursor-pointer",
                   isSelected
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-light-gray text-black"
+                    ? "bg-primary text-primary-foreground font-semibold"
+                    : "hover:bg-light-gray text-black font-medium"
                 )}
               >
                 {time}

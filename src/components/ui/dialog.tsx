@@ -133,7 +133,7 @@ function DialogCloseButton({
   return (
     <DialogPrimitive.Close
       className={cn(
-        "absolute right-3 top-3 w-6 h-6 bg-light-gray rounded-full flex items-center justify-center hover:bg-soft-gray transition-colors duration-200 ease",
+        "absolute right-3 top-3 w-6 h-6 bg-light-gray rounded-full flex items-center justify-center hover:bg-soft-gray transition-colors duration-200 ease cursor-pointer",
         className
       )}
       {...props}

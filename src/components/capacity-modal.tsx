@@ -45,8 +45,7 @@ export function CapacityModal({
 
         <div className="px-6 py-4">
           <p className="text-base text-dark-gray mb-4">
-            Set the maximum number of attendees for your event. This capacity is
-            shared across all ticket types linked to it.
+            This capacity is shared across all ticket types linked to it.
           </p>
 
           <div className="flex flex-col gap-1.5">
