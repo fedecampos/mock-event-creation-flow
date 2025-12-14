@@ -213,7 +213,7 @@ export default function EventCreationPage() {
   return (
     <div className="min-h-screen bg-light-gray md:p-2.5">
       {/* Main Content Card */}
-      <div className="bg-white md:rounded-[20px] shadow-card md:h-[calc(100vh-20px)] md:max-h-[calc(100vh-20px)] flex flex-col overflow-hidden">
+      <div className="bg-white md:rounded-[20px] shadow-card h-screen max-h-screen md:h-[calc(100vh-20px)] md:max-h-[calc(100vh-20px)] flex flex-col overflow-hidden">
         {/* Header */}
         <header className="relative shrink-0 bg-white flex items-center justify-between px-4 sm:px-2 py-2.5 md:py-3 border-b border-light-gray">
           {/* Mobile: TickPick Logo */}
@@ -261,8 +261,8 @@ export default function EventCreationPage() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 min-h-0 overflow-y-auto flex justify-center px-4 py-4 pb-8 md:px-8 md:py-8">
-          <div className="w-full max-w-[1000px] flex flex-col lg:flex-row gap-4 lg:gap-8">
+        <main className="flex-1 min-h-0 overflow-y-auto flex justify-center items-start px-4 py-4 md:px-8 md:py-8">
+          <div className="w-full max-w-[1000px] flex flex-col lg:flex-row gap-4 lg:gap-8 mb-8">
             {/* Left Column - Event Image */}
             <div className="w-full lg:flex-1">
               <input

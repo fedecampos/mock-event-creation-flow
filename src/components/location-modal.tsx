@@ -164,8 +164,8 @@ export function LocationModal({
           {/* Search Input */}
           <div className="relative">
             <Search
-              className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray transition-opacity duration-200 ease ${
-                isSearchFocused ? "opacity-0" : "opacity-100"
+              className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray transition-opacity duration-200 ease ${
+                isSearchFocused || searchQuery ? "opacity-0" : "opacity-100"
               }`}
             />
             <input
@@ -176,16 +176,18 @@ export function LocationModal({
               onBlur={() => setIsSearchFocused(false)}
               placeholder="Search for a location..."
               className={`w-full h-[47px] pr-4 text-base text-black placeholder:text-gray bg-transparent focus:outline-none border rounded-[14px] transition-all duration-200 ease ${
-                isSearchFocused ? "pl-4 border-tp-blue" : "pl-11 border-border"
+                isSearchFocused || searchQuery
+                  ? "pl-4 border-tp-blue"
+                  : "pl-11 border-border"
               }`}
               autoFocus
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 bg-soft-gray rounded-full flex items-center justify-center hover:bg-mid-gray transition-colors duration-200 ease"
+                className="absolute cursor-pointer right-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-soft-gray rounded-full flex items-center justify-center hover:text-black text-dark-gray transition-colors duration-200 ease"
               >
-                <X className="w-3 h-3 text-dark-gray" />
+                <X className="w-3 h-3 " />
               </button>
             )}
           </div>
