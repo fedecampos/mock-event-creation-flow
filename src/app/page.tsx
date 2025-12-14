@@ -1,25 +1,38 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
+import { CapacityModal } from "@/components/capacity-modal";
 import {
-  Plus,
-  MapPin,
-  Users,
-  FileText,
-  CircleHelp,
-  Check,
-  ChevronLeft,
-  RefreshCcw,
-  Trash2,
-  GripVertical,
-  MoreVertical,
-  Pencil,
-  Copy,
-} from "lucide-react";
+  DescriptionModal,
+  type EventContext,
+} from "@/components/description-modal";
 import {
-  DndContext,
+  LocationModal,
+  type LocationData,
+  type Venue,
+} from "@/components/location-modal";
+import { TicketModal, type Ticket } from "@/components/ticket-modal";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { TimePicker } from "@/components/ui/time-picker";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   closestCenter,
+  DndContext,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -34,38 +47,25 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { motion, AnimatePresence } from "framer-motion";
-import { Switch } from "@/components/ui/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { TimePicker } from "@/components/ui/time-picker";
-import {
-  DescriptionModal,
-  type EventContext,
-} from "@/components/description-modal";
-import { CapacityModal } from "@/components/capacity-modal";
-import {
-  LocationModal,
-  type LocationData,
-  type Venue,
-} from "@/components/location-modal";
-import { TicketModal, type Ticket } from "@/components/ticket-modal";
+  ArrowLeft,
+  Check,
+  CircleHelp,
+  Copy,
+  FileText,
+  GripVertical,
+  MapPin,
+  MoreVertical,
+  Pencil,
+  Plus,
+  RefreshCcw,
+  Trash2,
+  Users,
+} from "lucide-react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 type VisibilityOption = "public" | "private" | "draft";
 
@@ -213,14 +213,14 @@ export default function EventCreationPage() {
   return (
     <div className="min-h-screen bg-light-gray md:p-2.5">
       {/* Main Content Card */}
-      <div className="bg-white md:rounded-[20px] shadow-card min-h-[calc(100vh-20px)] flex flex-col">
+      <div className="bg-white md:rounded-[20px] shadow-card md:h-[calc(100vh-20px)] md:max-h-[calc(100vh-20px)] flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex items-center justify-between px-4 md:px-4 py-3 border-b border-light-gray relative">
-          <button className="flex items-center gap-2.5 px-2 py-2 rounded-full hover:bg-light-gray transition-colors duration-200 ease">
+        <header className="relative shrink-0 bg-white flex items-center justify-between px-2 py-3 border-b border-light-gray">
+          <button className="flex items-center gap-2.5 px-2 pr-3.5 py-2 rounded-full hover:bg-light-gray transition-colors duration-200 ease">
             <div className="w-[22px] h-[22px] bg-mid-gray rounded-full flex items-center justify-center">
-              <ChevronLeft className="w-3 h-3 text-white" strokeWidth={3} />
+              <ArrowLeft className="w-3 h-3 text-white" strokeWidth={3} />
             </div>
-            <span className="font-semibold text-sm text-black">Main menu</span>
+            <span className="font-normal text-sm text-black">Main menu</span>
           </button>
           <h1 className="hidden sm:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-lg text-black">
             New Event
@@ -230,7 +230,7 @@ export default function EventCreationPage() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex justify-center px-4 py-4 md:px-8 md:py-8">
+        <main className="flex-1 min-h-0 overflow-y-auto flex justify-center px-4 py-4 md:px-8 md:py-8">
           <div className="w-full max-w-[1000px] flex flex-col lg:flex-row gap-3 lg:gap-8">
             {/* Left Column - Event Image */}
             <div className="w-full lg:flex-1">
@@ -256,18 +256,18 @@ export default function EventCreationPage() {
                       fill
                       className="object-cover"
                     />
-                    {/* Overlay with actions on hover */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-200 ease flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
+                    {/* Overlay with actions on hover (always visible on touch devices, positioned bottom-right without overlay) */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-200 ease flex items-center justify-center [@media(hover:none)]:items-end [@media(hover:none)]:justify-end [@media(hover:none)]:p-3 gap-2.5 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
                       {/* Replace image button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           fileInputRef.current?.click();
                         }}
-                        className="cursor-pointer w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center hover:scale-105 active:scale-95 transition-transform duration-200"
+                        className="cursor-pointer w-[38px] h-[38px] bg-white rounded-full shadow-sm flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
                       >
                         <RefreshCcw
-                          className="w-5 h-5 text-black"
+                          className="w-4 h-4 text-black"
                           strokeWidth={2}
                         />
                       </button>
@@ -277,10 +277,10 @@ export default function EventCreationPage() {
                           e.stopPropagation();
                           handleRemoveImage();
                         }}
-                        className="group/delete cursor-pointer w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center hover:scale-105 active:scale-95 transition-transform duration-200"
+                        className="group/delete cursor-pointer w-[38px] h-[38px] bg-white rounded-full shadow-sm flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
                       >
                         <Trash2
-                          className="w-5 h-5 text-black group-hover/delete:text-tp-red transition-colors duration-200 ease"
+                          className="w-4 h-4 text-black group-hover/delete:text-tp-red transition-colors duration-200 ease"
                           strokeWidth={2}
                         />
                       </button>
@@ -307,7 +307,7 @@ export default function EventCreationPage() {
 
                     {/* Plus button */}
                     <button className="cursor-pointer absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[38px] h-[38px] bg-white rounded-full shadow-sm flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200">
-                      <Plus className="w-5 h-5 text-black" strokeWidth={2} />
+                      <Plus className="w-4 h-4 text-black" strokeWidth={2} />
                     </button>
                   </>
                 )}
@@ -555,7 +555,7 @@ export default function EventCreationPage() {
               </div>
 
               {/* Create Event Button */}
-              <button className="w-full h-[50px] mt-3 bg-tp-blue text-white font-bold text-base rounded-[36px] flex items-center justify-center hover:bg-[#2288ee] transition-colors duration-200 ease active:scale-[0.98] transform">
+              <button className="w-full h-[50px] shrink-0 mt-3 bg-tp-blue text-white font-bold text-base rounded-[36px] flex items-center justify-center hover:bg-[#2288ee] transition-colors duration-200 ease active:scale-[0.98] transform">
                 Create Event
               </button>
             </div>
@@ -883,14 +883,14 @@ function VisibilityRadio({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 p-3 sm:p-4 cursor-pointer rounded-[14px] flex items-center justify-center relative transition-shadow duration-200 ease ${
+      className={`flex-1 p-3 sm:p-3.5 cursor-pointer rounded-[14px] flex items-center justify-center relative transition-shadow duration-200 ease ${
         selected
           ? "shadow-[inset_0_0_0_1.5px_var(--color-tp-blue)]"
           : "shadow-[inset_0_0_0_1px_var(--color-neutral-200)] hover:shadow-[inset_0_0_0_1px_var(--color-mid-gray)]"
       }`}
     >
       <span
-        className={` text-sm font-semibold ${
+        className={` text-base font-semibold ${
           selected ? "text-black" : "text-dark-gray"
         }`}
       >
@@ -919,9 +919,46 @@ function VisibilityRadio({
 
 function EndDateTooltip({ showEndDate }: { showEndDate: boolean }) {
   const [open, setOpen] = useState(false);
+  const isFirstRender = useRef(true);
+  const autoHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-show tooltip when toggle state changes (after initial render)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    // Clear any existing timeout
+    if (autoHideTimeoutRef.current) {
+      clearTimeout(autoHideTimeoutRef.current);
+    }
+
+    // Show the tooltip
+    setOpen(true);
+
+    // Auto-hide after 2 seconds
+    autoHideTimeoutRef.current = setTimeout(() => {
+      setOpen(false);
+    }, 2000);
+
+    return () => {
+      if (autoHideTimeoutRef.current) {
+        clearTimeout(autoHideTimeoutRef.current);
+      }
+    };
+  }, [showEndDate]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    // Clear auto-hide timeout if user manually interacts
+    if (autoHideTimeoutRef.current) {
+      clearTimeout(autoHideTimeoutRef.current);
+    }
+    setOpen(newOpen);
+  };
 
   return (
-    <Tooltip open={open} onOpenChange={setOpen}>
+    <Tooltip open={open} onOpenChange={handleOpenChange}>
       <TooltipTrigger asChild>
         <button
           type="button"
@@ -959,8 +996,8 @@ function VisibilityTooltip() {
       <TooltipContent side="bottom" align="start">
         <div className="flex flex-col gap-1.5">
           <p>
-            <span className="font-semibold">Public:</span> Searchable on
-            TickPick Marketplace.
+            <span className="font-semibold">Public:</span> Listed on TickPick
+            Marketplace.
           </p>
           <p>
             <span className="font-semibold">Private:</span> Only accessible via
