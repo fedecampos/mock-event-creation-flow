@@ -160,13 +160,13 @@ export function TicketModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px] max-h-[85vh] flex flex-col">
+      <DialogContent className="max-w-[calc(100vw-16px)] max-h-[85vh] flex flex-col sm:max-w-[500px] ">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Ticket" : "New Ticket"}</DialogTitle>
           <DialogCloseButton />
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 flex flex-col gap-5">
           {/* Name Field */}
           <div className="flex flex-col gap-1">
             <label className="font-bold text-sm text-black">Name</label>
@@ -386,7 +386,7 @@ export function TicketModal({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="px-4 md:px-6">
           <button
             onClick={handleSave}
             className="bg-tp-blue cursor-pointer text-white font-bold text-base px-5 py-2.5 rounded-[36px] hover:bg-[#2288ee] transition-colors duration-200 ease active:scale-[0.98] transform"
