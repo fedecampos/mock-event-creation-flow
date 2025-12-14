@@ -958,7 +958,7 @@ function VisibilityRadio({
               stiffness: 500,
               damping: 25,
             }}
-            className="absolute bottom-2 right-2 w-[18px] h-[18px] bg-tp-blue rounded-full flex items-center justify-center"
+            className="absolute bottom-2 right-2 w-[18px] h-[18px] bg-tp-blue rounded-full hidden sm:flex items-center justify-center"
           >
             <Check className="w-3 h-3 text-white" strokeWidth={3} />
           </motion.div>
