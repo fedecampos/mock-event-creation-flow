@@ -212,7 +212,7 @@ export function BannerGeneratorModal({
         {view === "style-selection" && (
           <motion.div
             layoutId="banner-modal-container"
-            className="bg-white rounded-[24px] shadow-lg w-full max-w-[480px] mx-4 pointer-events-auto"
+            className="bg-white rounded-[24px] shadow-lg w-full max-w-[480px] mx-2 pointer-events-auto"
             transition={springTransition}
           >
             {/* Header */}
@@ -322,7 +322,7 @@ export function BannerGeneratorModal({
         {view === "loading" && (
           <motion.div
             layoutId="banner-modal-container"
-            className="bg-white rounded-[24px] shadow-lg w-full max-w-[520px] mx-4 pointer-events-auto"
+            className="bg-white rounded-[24px] shadow-lg w-full max-w-[520px] mx-2 pointer-events-auto"
             transition={springTransition}
           >
             {/* Header */}
@@ -382,7 +382,7 @@ export function BannerGeneratorModal({
         {view === "preview" && (
           <motion.div
             layoutId="banner-modal-container"
-            className="bg-white rounded-[24px] shadow-lg w-full max-w-[580px] mx-4 pointer-events-auto"
+            className="bg-white rounded-[24px] shadow-lg w-full max-w-[580px] mx-2 pointer-events-auto"
             transition={springTransition}
           >
             {/* Header */}
