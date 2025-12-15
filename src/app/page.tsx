@@ -89,13 +89,15 @@ function useIsMobile() {
 export default function EventCreationPage() {
   const isMobile = useIsMobile();
   const [visibility, setVisibility] = useState<VisibilityOption>("public");
-  const [startDate, setStartDate] = useState<Date | undefined>(
-    new Date(2024, 11, 3) // Dec 3, 2024
-  );
+  const [startDate, setStartDate] = useState<Date | undefined>(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() + 1);
+    return date;
+  });
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
-  const [startTime, setStartTime] = useState<string>("3:00 PM");
+  const [startTime, setStartTime] = useState<string>("6:00 PM");
   const [endTime, setEndTime] = useState<string | undefined>(undefined);
   const [showEndDate, setShowEndDate] = useState<boolean>(false);
   const [eventImage, setEventImage] = useState<string | null>(null);
@@ -420,9 +422,15 @@ export default function EventCreationPage() {
                           <Calendar
                             mode="single"
                             selected={startDate}
+                            defaultMonth={startDate}
                             onSelect={(date) => {
                               setStartDate(date);
                               setStartDateOpen(false);
+                            }}
+                            disabled={(date) => {
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              return date < today;
                             }}
                             initialFocus
                           />
@@ -488,13 +496,19 @@ export default function EventCreationPage() {
                           <Calendar
                             mode="single"
                             selected={endDate}
+                            defaultMonth={endDate || startDate}
                             onSelect={(date) => {
                               setEndDate(date);
                               setEndDateOpen(false);
                             }}
-                            disabled={(date) =>
-                              startDate ? date < startDate : false
-                            }
+                            disabled={(date) => {
+                              if (!startDate) return false;
+                              const start = new Date(startDate);
+                              start.setHours(0, 0, 0, 0);
+                              const compareDate = new Date(date);
+                              compareDate.setHours(0, 0, 0, 0);
+                              return compareDate < start;
+                            }}
                             initialFocus
                           />
                         </PopoverContent>

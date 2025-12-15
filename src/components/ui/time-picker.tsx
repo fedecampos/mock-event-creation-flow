@@ -17,11 +17,11 @@ interface TimePickerProps {
   allowClear?: boolean;
 }
 
-// Generate time slots in 30-minute increments
+// Generate time slots in 15-minute increments
 function generateTimeSlots(): string[] {
   const slots: string[] = [];
   for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 30) {
+    for (let minute = 0; minute < 60; minute += 15) {
       const period = hour >= 12 ? "PM" : "AM";
       const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
       const displayMinute = minute.toString().padStart(2, "0");
@@ -105,7 +105,7 @@ function TimePicker({
               className={cn(
                 "w-full px-4 py-2 text-sm font-medium text-center transition-colors duration-200 ease select-none rounded-[16px] cursor-pointer",
                 !value
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground font-semibold"
                   : "hover:bg-light-gray text-gray"
               )}
             >
