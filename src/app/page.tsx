@@ -532,6 +532,18 @@ export default function EventCreationPage() {
                     <LocationDisplay
                       location={location}
                       onClick={() => setLocationModalOpen(true)}
+                      onSaveAsVenue={(name) => {
+                        const newVenue: Venue = {
+                          id: `venue_${Date.now()}`,
+                          name,
+                          address: location.address,
+                        };
+                        setSavedVenues((prev) => [...prev, newVenue]);
+                        setLocation({
+                          address: location.address,
+                          venue: newVenue,
+                        });
+                      }}
                     />
                   ) : (
                     <ActionButton
@@ -632,7 +644,7 @@ export default function EventCreationPage() {
               </div>
 
               {/* Create Event Button */}
-              <button className="w-full h-[54px] md:h-[50px] shrink-0 mt-3 bg-tp-blue text-white font-bold text-base rounded-[36px] flex items-center justify-center hover:bg-[#2288ee] transition-colors duration-200 ease active:scale-[0.98] transform">
+              <button className="w-full h-[54px] md:h-[50px] shrink-0 mt-3 bg-tp-blue text-white font-bold text-base rounded-[36px] flex items-center justify-center hover:bg-[#2288ee] transition-colors duration-200 ease active:scale-[0.98] transform cursor-pointer">
                 Create Event
               </button>
             </div>
@@ -734,11 +746,9 @@ function DescriptionDisplay({
       onClick={onClick}
       className="w-full cursor-pointer rounded-[14px] flex items-start gap-3 px-4 py-3 transition-colors duration-200 ease bg-light-gray hover:bg-soft-gray text-left"
     >
-      <FileText className="w-4 h-4 text-black mt-1 md:mt-0.5 shrink-0" />
+      <FileText className="w-4 h-4 text-black mt-1 shrink-0" />
       <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-        <span className="font-bold text-base md:text-sm text-black">
-          Description
-        </span>
+        <span className="font-bold text-base text-black">Description</span>
         <span className="text-sm text-dark-gray line-clamp-2">
           {description}
         </span>
@@ -762,11 +772,9 @@ function CapacityDisplay({
         onClick={onClick}
         className="flex-1 flex items-start gap-3 cursor-pointer text-left min-w-0"
       >
-        <Users className="w-4 h-4 text-black mt-1 md:mt-0.5 shrink-0" />
+        <Users className="w-4 h-4 text-black mt-1 shrink-0" />
         <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-          <span className="font-bold text-base md:text-sm text-black">
-            Capacity
-          </span>
+          <span className="font-bold text-base text-black">Capacity</span>
           <span className="text-sm text-dark-gray">{capacity}</span>
         </div>
       </button>
@@ -806,27 +814,105 @@ function CapacityDisplay({
 function LocationDisplay({
   location,
   onClick,
+  onSaveAsVenue,
 }: {
   location: LocationData;
   onClick: () => void;
+  onSaveAsVenue?: (name: string) => void;
 }) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [venueName, setVenueName] = useState("");
+
   const displayName = location.venue?.name || location.address;
   const displayAddress = location.venue ? location.address : null;
+  const canSaveAsVenue = !location.venue && onSaveAsVenue;
+
+  const handleStartSave = () => {
+    setIsSaving(true);
+    setVenueName("");
+  };
+
+  const handleCancelSave = () => {
+    setIsSaving(false);
+    setVenueName("");
+  };
+
+  const handleConfirmSave = () => {
+    if (!venueName.trim() || !onSaveAsVenue) return;
+    onSaveAsVenue(venueName.trim());
+    setIsSaving(false);
+    setVenueName("");
+  };
+
+  if (isSaving) {
+    return (
+      <div className="w-full rounded-[14px] px-4 py-4 bg-light-gray">
+        <div className="flex-1 min-w-0">
+          <div className="text-base text-black mb-2 font-bold">
+            {location.address}
+          </div>
+          <input
+            type="text"
+            value={venueName}
+            onChange={(e) => setVenueName(e.target.value)}
+            placeholder="Enter venue name..."
+            className="w-full h-11 px-4 text-sm text-black placeholder:text-gray bg-white focus:outline-none border rounded-[10px] mb-3"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleConfirmSave();
+              } else if (e.key === "Escape") {
+                handleCancelSave();
+              }
+            }}
+          />
+          <div className="flex gap-5 justify-end pr-1">
+            <button
+              onClick={handleCancelSave}
+              className="px-0 py-0 text-base font-semibold text-dark-gray hover:text-black transition-colors duration-200 ease cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmSave}
+              disabled={!venueName.trim()}
+              className="px-0 py-0 text-base font-semibold text-tp-blue hover:text-[#2288ee] transition-colors duration-200 ease cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <button
       onClick={onClick}
-      className="w-full cursor-pointer rounded-[14px] flex items-start gap-3 px-4 py-3 transition-colors duration-200 ease bg-light-gray hover:bg-soft-gray text-left"
+      className="w-full rounded-[14px] flex items-start gap-3 px-4 py-3 bg-light-gray cursor-pointer hover:bg-soft-gray transition-colors duration-200 ease"
     >
-      <MapPin className="w-4 h-4 text-black mt-1 md:mt-0.5 shrink-0" />
-      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-        <span className="font-bold text-base md:text-sm text-black">
-          {displayName}
-        </span>
-        {displayAddress && (
-          <span className="text-sm text-dark-gray line-clamp-1">
-            {displayAddress}
+      <MapPin className="w-4 h-4 text-black mt-1 shrink-0" />
+      <div className="flex gap-3 min-w-0 flex-1 flex-wrap items-center justify-between">
+        <div className=" flex flex-col gap-0.5">
+          <span className="font-bold text-base text-black w-fit">
+            {displayName}
           </span>
+          {displayAddress && (
+            <span className="text-sm text-dark-gray line-clamp-1 block">
+              {displayAddress}
+            </span>
+          )}
+        </div>
+        {canSaveAsVenue && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleStartSave();
+            }}
+            className="self-start text-base font-semibold text-tp-blue hover:opacity-80 transition-opacity duration-200 ease cursor-pointer py-0 h-5"
+          >
+            Save as venue
+          </button>
         )}
       </div>
     </button>

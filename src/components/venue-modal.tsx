@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Upload } from "lucide-react";
 import {
   Dialog,
@@ -16,16 +16,18 @@ interface VenueModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreateVenue: (venue: Venue) => void;
+  initialAddress?: string;
 }
 
 export function VenueModal({
   open,
   onOpenChange,
   onCreateVenue,
+  initialAddress,
 }: VenueModalProps) {
   const [name, setName] = useState("");
   const [capacity, setCapacity] = useState("");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState(initialAddress ?? "");
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [instagram, setInstagram] = useState("");
@@ -33,6 +35,13 @@ export function VenueModal({
   const [xHandle, setXHandle] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update location when initialAddress changes (when modal opens with an address)
+  useEffect(() => {
+    if (open && initialAddress) {
+      setLocation(initialAddress);
+    }
+  }, [open, initialAddress]);
 
   const resetForm = () => {
     setName("");

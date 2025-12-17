@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Plus, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogCloseButton,
 } from "@/components/ui/dialog";
-import { VenueModal } from "./venue-modal";
 
 export interface Venue {
   id: string;
@@ -79,18 +78,11 @@ export function LocationModal({
 }: LocationModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(true);
-  const [newVenueModalOpen, setNewVenueModalOpen] = useState(false);
+  const [savingVenueId, setSavingVenueId] = useState<string | null>(null);
+  const [venueName, setVenueName] = useState("");
 
-  // Filter saved venues based on search
-  const filteredVenues = useMemo(() => {
-    if (!searchQuery.trim()) return savedVenues;
-    const query = searchQuery.toLowerCase();
-    return savedVenues.filter(
-      (venue) =>
-        venue.name.toLowerCase().includes(query) ||
-        venue.address.toLowerCase().includes(query)
-    );
-  }, [savedVenues, searchQuery]);
+  // Show saved venues only when not searching
+  const showSavedVenues = !searchQuery.trim();
 
   // Filter mock Google results based on search (only show when there's a query)
   const googleResults = useMemo(() => {
@@ -121,20 +113,40 @@ export function LocationModal({
     resetState();
   };
 
-  const handleCreateNewVenue = (venue: Venue) => {
-    onSaveVenue(venue);
-    onChange({
-      address: venue.address,
-      venue,
-    });
-    onOpenChange(false);
-    resetState();
-  };
-
   const resetState = () => {
     setSearchQuery("");
     setIsSearchFocused(true);
-    setNewVenueModalOpen(false);
+    setSavingVenueId(null);
+    setVenueName("");
+  };
+
+  const handleStartSaveVenue = (placeId: string) => {
+    setSavingVenueId(placeId);
+    setVenueName("");
+  };
+
+  const handleCancelSaveVenue = () => {
+    setSavingVenueId(null);
+    setVenueName("");
+  };
+
+  const handleConfirmSaveVenue = (placeId: string, address: string) => {
+    if (!venueName.trim()) return;
+
+    const newVenue: Venue = {
+      id: `venue_${Date.now()}`,
+      name: venueName.trim(),
+      address,
+      placeId,
+    };
+
+    onSaveVenue(newVenue);
+    onChange({
+      address,
+      venue: newVenue,
+    });
+    onOpenChange(false);
+    resetState();
   };
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -146,13 +158,13 @@ export function LocationModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[440px] max-h-[85vh] flex flex-col max-w-[calc(100vw-16px)] min-h-[360px] w-full">
+      <DialogContent className="sm:max-w-[460px] max-h-[85vh] flex flex-col max-w-[calc(100vw-16px)] min-h-[360px] w-full">
         <DialogHeader>
           <DialogTitle>Event Location</DialogTitle>
           <DialogCloseButton />
         </DialogHeader>
 
-        <div className="px-4 md:px-6 py-4 flex flex-col gap-3 flex-1 overflow-hidden w-full">
+        <div className="px-4 md:px-6 py-4 flex flex-col gap-2.5 flex-1 overflow-hidden w-full">
           {/* Search Input */}
           <div className="relative w-full">
             <Search
@@ -186,43 +198,28 @@ export function LocationModal({
 
           {/* Scrollable Results */}
           <div className="flex-1 overflow-y-auto -mx-6 px-6 flex flex-col gap-1 w-[calc(100%+3rem)]">
-            {/* Saved Venues Section - hide when searching with no matches */}
-            {(filteredVenues.length > 0 || !searchQuery) && (
+            {/* Saved Venues Section - hide when searching */}
+            {showSavedVenues && savedVenues.length > 0 && (
               <div className="w-full">
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-[10px] font-semibold text-gray uppercase tracking-wide">
-                    Saved Venues
-                  </span>
-                  <button
-                    onClick={() => setNewVenueModalOpen(true)}
-                    className="text-[10px] font-bold text-tp-blue hover:opacity-80 transition-opacity duration-200 ease cursor-pointer uppercase flex items-center"
-                  >
-                    <Plus className="w-3 h-3 mr-1" strokeWidth={2.5} /> New
-                    Venue
-                  </button>
+                <span className="text-[10px] font-semibold text-gray uppercase tracking-wide">
+                  Saved Venues
+                </span>
+                <div className="flex flex-col">
+                  {savedVenues.map((venue) => (
+                    <button
+                      key={venue.id}
+                      onClick={() => handleSelectVenue(venue)}
+                      className="w-full text-left py-1.5 cursor-pointer group relative before:absolute before:inset-y-0 before:-inset-x-2.5 before:rounded-[12px] before:bg-transparent before:transition-colors before:duration-200 before:ease hover:before:bg-light-gray"
+                    >
+                      <div className="font-semibold text-sm text-black relative">
+                        {venue.name}
+                      </div>
+                      <div className="text-xs text-dark-gray mt-px relative">
+                        {venue.address}
+                      </div>
+                    </button>
+                  ))}
                 </div>
-                {filteredVenues.length > 0 ? (
-                  <div className="flex flex-col">
-                    {filteredVenues.map((venue) => (
-                      <button
-                        key={venue.id}
-                        onClick={() => handleSelectVenue(venue)}
-                        className="w-full text-left py-1.5 cursor-pointer group relative before:absolute before:inset-y-0 before:-inset-x-2.5 before:rounded-[12px] before:bg-transparent before:transition-colors before:duration-200 before:ease hover:before:bg-light-gray"
-                      >
-                        <div className="font-semibold text-sm text-black relative">
-                          {venue.name}
-                        </div>
-                        <div className="text-xs text-dark-gray mt-px relative">
-                          {venue.address}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-px py-1">
-                    <p className="text-xs text-gray">No saved venues yet</p>
-                  </div>
-                )}
               </div>
             )}
 
@@ -237,20 +234,78 @@ export function LocationModal({
                     {googleResults.map((result) => (
                       <motion.div
                         key={result.placeId}
-                        layout
+                        layout="position"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
                       >
-                        <button
-                          onClick={() => handleSelectGoogleResult(result)}
-                          className="w-full text-left py-2 cursor-pointer relative before:absolute before:inset-y-0 before:-inset-x-3 before:rounded-[12px] before:bg-transparent before:transition-colors before:duration-200 before:ease hover:before:bg-light-gray"
-                        >
-                          <div className="text-sm text-black relative">
-                            {result.address}
+                        {savingVenueId === result.placeId ? (
+                          /* Save as Venue Form */
+                          <div className="py-3 relative before:absolute before:inset-y-0 before:-inset-x-3 before:rounded-[12px] before:bg-light-gray">
+                            <div className="text-sm text-black mb-2 relative">
+                              {result.address}
+                            </div>
+                            <input
+                              type="text"
+                              value={venueName}
+                              onChange={(e) => setVenueName(e.target.value)}
+                              placeholder="Enter venue name..."
+                              className="relative w-full h-9 px-3 text-sm text-black placeholder:text-gray bg-white focus:outline-none border rounded-[10px] mb-2"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  handleConfirmSaveVenue(
+                                    result.placeId,
+                                    result.address
+                                  );
+                                } else if (e.key === "Escape") {
+                                  handleCancelSaveVenue();
+                                }
+                              }}
+                            />
+                            <div className="flex gap-4 justify-end relative pr-1">
+                              <button
+                                onClick={handleCancelSaveVenue}
+                                className="px-0 py-0 text-sm font-semibold text-dark-gray hover:text-black transition-colors duration-200 ease cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleConfirmSaveVenue(
+                                    result.placeId,
+                                    result.address
+                                  )
+                                }
+                                disabled={!venueName.trim()}
+                                className="px-0 py-0 text-sm font-semibold text-tp-blue hover:text-[#2288ee] transition-colors duration-200 ease cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Save
+                              </button>
+                            </div>
                           </div>
-                        </button>
+                        ) : (
+                          /* Regular Result Item */
+                          <div className="flex items-center py-1.5 group relative before:absolute before:inset-y-0 before:-inset-x-3 before:rounded-[12px] before:bg-transparent before:transition-colors before:duration-200 before:ease hover:before:bg-light-gray">
+                            <button
+                              onClick={() => handleSelectGoogleResult(result)}
+                              className="flex-1 text-left cursor-pointer relative"
+                            >
+                              <div className="text-sm text-black">
+                                {result.address}
+                              </div>
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleStartSaveVenue(result.placeId)
+                              }
+                              className="relative hidden md:block opacity-0 group-hover:opacity-100 px-0 py-1 text-sm font-semibold text-tp-blue hover:text-opacity-80 transition-all duration-200 ease cursor-pointer shrink-0"
+                            >
+                              Save as venue
+                            </button>
+                          </div>
+                        )}
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -268,12 +323,6 @@ export function LocationModal({
           </div>
         </div>
       </DialogContent>
-
-      <VenueModal
-        open={newVenueModalOpen}
-        onOpenChange={setNewVenueModalOpen}
-        onCreateVenue={handleCreateNewVenue}
-      />
     </Dialog>
   );
 }
