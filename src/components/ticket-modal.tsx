@@ -28,7 +28,6 @@ export interface Ticket {
   linkToCapacity: boolean;
   price: string;
   feeOption: "pass_to_buyer" | "absorb";
-  extraFee: string;
   details: string;
 }
 
@@ -62,7 +61,6 @@ export function TicketModal({
   const [feeOption, setFeeOption] = useState<"pass_to_buyer" | "absorb">(
     "pass_to_buyer"
   );
-  const [extraFee, setExtraFee] = useState("");
   const [details, setDetails] = useState("");
   const [feePopoverOpen, setFeePopoverOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -78,7 +76,6 @@ export function TicketModal({
         setLinkToCapacity(ticket.linkToCapacity);
         setPrice(ticket.price);
         setFeeOption(ticket.feeOption);
-        setExtraFee(ticket.extraFee);
         setDetails(ticket.details);
       } else {
         setName("");
@@ -86,7 +83,6 @@ export function TicketModal({
         setLinkToCapacity(false);
         setPrice("");
         setFeeOption("pass_to_buyer");
-        setExtraFee("");
         setDetails("");
       }
       setAdvancedOpen(false);
@@ -109,14 +105,6 @@ export function TicketModal({
     setPrice(value);
   };
 
-  const handleExtraFeeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9.]/g, "");
-    const parts = value.split(".");
-    if (parts.length > 2) return;
-    if (parts[1] && parts[1].length > 2) return;
-    setExtraFee(value);
-  };
-
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (linkToCapacity) return;
     const numericValue = e.target.value.replace(/[^0-9]/g, "");
@@ -125,18 +113,17 @@ export function TicketModal({
 
   // Calculate fees
   const priceNum = parseFloat(price) || 0;
-  const extraFeeNum = parseFloat(extraFee) || 0;
   const platformFee = priceNum * PLATFORM_FEE_PERCENT;
 
   let youGet = 0;
   let buyerPays = 0;
 
   if (feeOption === "pass_to_buyer") {
-    youGet = priceNum + extraFeeNum;
-    buyerPays = priceNum + extraFeeNum + platformFee;
+    youGet = priceNum;
+    buyerPays = priceNum + platformFee;
   } else {
-    youGet = priceNum + extraFeeNum - platformFee;
-    buyerPays = priceNum + extraFeeNum;
+    youGet = priceNum - platformFee;
+    buyerPays = priceNum;
   }
 
   const formatCurrency = (amount: number) => {
@@ -151,7 +138,6 @@ export function TicketModal({
       linkToCapacity,
       price,
       feeOption,
-      extraFee,
       details,
     };
     onSave(ticketData);
@@ -294,26 +280,6 @@ export function TicketModal({
               </div>
             </div>
 
-            {/* Extra fee */}
-            <div className="flex flex-col gap-1">
-              <label className="font-bold text-sm text-black">
-                Extra fee (venue fee, promoter fee, etc.)
-              </label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={extraFee ? `$${extraFee}` : ""}
-                onChange={(e) => {
-                  const val = e.target.value.replace("$", "");
-                  handleExtraFeeChange({
-                    target: { value: val },
-                  } as React.ChangeEvent<HTMLInputElement>);
-                }}
-                placeholder="$0.00"
-                className="w-full h-[47px] px-4 text-sm text-black placeholder:text-gray bg-white rounded-[16px] focus:outline-none focus:ring-1 focus:ring-tp-blue transition-all duration-200 ease"
-              />
-            </div>
-
             {/* Summary line */}
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
@@ -398,6 +364,3 @@ export function TicketModal({
     </Dialog>
   );
 }
-
-
-

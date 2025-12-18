@@ -33,6 +33,7 @@ export interface Venue {
 export interface LocationData {
   address: string;
   venue?: Venue;
+  isTbd?: boolean;
 }
 
 interface LocationModalProps {
@@ -40,8 +41,7 @@ interface LocationModalProps {
   onOpenChange: (open: boolean) => void;
   value: LocationData | null;
   onChange: (value: LocationData | null) => void;
-  savedVenues: Venue[];
-  onSaveVenue: (venue: Venue) => void;
+  recentlyUsed: Venue[];
 }
 
 // Mock Google Places results
@@ -73,16 +73,13 @@ export function LocationModal({
   onOpenChange,
   value,
   onChange,
-  savedVenues,
-  onSaveVenue,
+  recentlyUsed,
 }: LocationModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(true);
-  const [savingVenueId, setSavingVenueId] = useState<string | null>(null);
-  const [venueName, setVenueName] = useState("");
 
-  // Show saved venues only when not searching
-  const showSavedVenues = !searchQuery.trim();
+  // Show recently used only when not searching
+  const showRecentlyUsed = !searchQuery.trim();
 
   // Filter mock Google results based on search (only show when there's a query)
   const googleResults = useMemo(() => {
@@ -113,40 +110,18 @@ export function LocationModal({
     resetState();
   };
 
-  const resetState = () => {
-    setSearchQuery("");
-    setIsSearchFocused(true);
-    setSavingVenueId(null);
-    setVenueName("");
-  };
-
-  const handleStartSaveVenue = (placeId: string) => {
-    setSavingVenueId(placeId);
-    setVenueName("");
-  };
-
-  const handleCancelSaveVenue = () => {
-    setSavingVenueId(null);
-    setVenueName("");
-  };
-
-  const handleConfirmSaveVenue = (placeId: string, address: string) => {
-    if (!venueName.trim()) return;
-
-    const newVenue: Venue = {
-      id: `venue_${Date.now()}`,
-      name: venueName.trim(),
-      address,
-      placeId,
-    };
-
-    onSaveVenue(newVenue);
+  const handleSetTbd = () => {
     onChange({
-      address,
-      venue: newVenue,
+      address: "To be determined",
+      isTbd: true,
     });
     onOpenChange(false);
     resetState();
+  };
+
+  const resetState = () => {
+    setSearchQuery("");
+    setIsSearchFocused(true);
   };
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -164,7 +139,7 @@ export function LocationModal({
           <DialogCloseButton />
         </DialogHeader>
 
-        <div className="px-4 md:px-6 py-4 flex flex-col gap-2.5 flex-1 overflow-hidden w-full">
+        <div className="px-4 md:px-6 py-4 pb-6 flex flex-col gap-2.5 flex-1 overflow-hidden w-full">
           {/* Search Input */}
           <div className="relative w-full">
             <Search
@@ -198,14 +173,14 @@ export function LocationModal({
 
           {/* Scrollable Results */}
           <div className="flex-1 overflow-y-auto -mx-6 px-6 flex flex-col gap-1 w-[calc(100%+3rem)]">
-            {/* Saved Venues Section - hide when searching */}
-            {showSavedVenues && savedVenues.length > 0 && (
+            {/* Recently Used Section - hide when searching */}
+            {showRecentlyUsed && recentlyUsed.length > 0 && (
               <div className="w-full">
                 <span className="text-[10px] font-semibold text-gray uppercase tracking-wide">
-                  Saved Venues
+                  Recently Used
                 </span>
                 <div className="flex flex-col">
-                  {savedVenues.map((venue) => (
+                  {recentlyUsed.map((venue) => (
                     <button
                       key={venue.id}
                       onClick={() => handleSelectVenue(venue)}
@@ -240,72 +215,14 @@ export function LocationModal({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
                       >
-                        {savingVenueId === result.placeId ? (
-                          /* Save as Venue Form */
-                          <div className="py-3 relative before:absolute before:inset-y-0 before:-inset-x-3 before:rounded-[12px] before:bg-light-gray">
-                            <div className="text-sm text-black mb-2 relative">
-                              {result.address}
-                            </div>
-                            <input
-                              type="text"
-                              value={venueName}
-                              onChange={(e) => setVenueName(e.target.value)}
-                              placeholder="Enter venue name..."
-                              className="relative w-full h-9 px-3 text-sm text-black placeholder:text-gray bg-white focus:outline-none border rounded-[10px] mb-2"
-                              autoFocus
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  handleConfirmSaveVenue(
-                                    result.placeId,
-                                    result.address
-                                  );
-                                } else if (e.key === "Escape") {
-                                  handleCancelSaveVenue();
-                                }
-                              }}
-                            />
-                            <div className="flex gap-4 justify-end relative pr-1">
-                              <button
-                                onClick={handleCancelSaveVenue}
-                                className="px-0 py-0 text-sm font-semibold text-dark-gray hover:text-black transition-colors duration-200 ease cursor-pointer"
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleConfirmSaveVenue(
-                                    result.placeId,
-                                    result.address
-                                  )
-                                }
-                                disabled={!venueName.trim()}
-                                className="px-0 py-0 text-sm font-semibold text-tp-blue hover:text-[#2288ee] transition-colors duration-200 ease cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                Save
-                              </button>
-                            </div>
+                        <button
+                          onClick={() => handleSelectGoogleResult(result)}
+                          className="w-full text-left py-2 cursor-pointer relative before:absolute before:inset-y-0 before:-inset-x-3 before:rounded-[12px] before:bg-transparent before:transition-colors before:duration-200 before:ease hover:before:bg-light-gray"
+                        >
+                          <div className="text-sm text-black relative">
+                            {result.address}
                           </div>
-                        ) : (
-                          /* Regular Result Item */
-                          <div className="flex items-center py-1.5 group relative before:absolute before:inset-y-0 before:-inset-x-3 before:rounded-[12px] before:bg-transparent before:transition-colors before:duration-200 before:ease hover:before:bg-light-gray">
-                            <button
-                              onClick={() => handleSelectGoogleResult(result)}
-                              className="flex-1 text-left cursor-pointer relative"
-                            >
-                              <div className="text-sm text-black">
-                                {result.address}
-                              </div>
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleStartSaveVenue(result.placeId)
-                              }
-                              className="relative hidden md:block opacity-0 group-hover:opacity-100 px-0 py-1 text-sm font-semibold text-tp-blue hover:text-opacity-80 transition-all duration-200 ease cursor-pointer shrink-0"
-                            >
-                              Save as venue
-                            </button>
-                          </div>
-                        )}
+                        </button>
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -321,6 +238,21 @@ export function LocationModal({
               )}
             </div>
           </div>
+
+          {/* TBD Option - subtle link at bottom, hidden when searching */}
+          {!searchQuery.trim() && (
+            <div className="pt-3 border-t border-border/50 mt-4">
+              <p className="text-xs text-gray">
+                Location not decided yet?{" "}
+                <button
+                  onClick={handleSetTbd}
+                  className="text-tp-blue font-semibold hover:opacity-80 duration-200 ease transition-opacity cursor-pointer"
+                >
+                  Mark as TBD
+                </button>
+              </p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

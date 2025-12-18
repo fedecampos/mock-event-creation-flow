@@ -108,7 +108,7 @@ export default function EventCreationPage() {
   const [capacityModalOpen, setCapacityModalOpen] = useState(false);
   const [location, setLocation] = useState<LocationData | null>(null);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
-  const [savedVenues, setSavedVenues] = useState<Venue[]>([
+  const [recentlyUsedLocations, setRecentlyUsedLocations] = useState<Venue[]>([
     {
       id: "venue_1",
       name: "Main Office",
@@ -153,10 +153,6 @@ export default function EventCreationPage() {
   const formatDate = (date: Date | undefined) => {
     if (!date) return null;
     return format(date, "EEE, MMM d");
-  };
-
-  const handleSaveVenue = (venue: Venue) => {
-    setSavedVenues((prev) => [...prev, venue]);
   };
 
   const handleSaveTicket = (ticket: Ticket) => {
@@ -532,18 +528,6 @@ export default function EventCreationPage() {
                     <LocationDisplay
                       location={location}
                       onClick={() => setLocationModalOpen(true)}
-                      onSaveAsVenue={(name) => {
-                        const newVenue: Venue = {
-                          id: `venue_${Date.now()}`,
-                          name,
-                          address: location.address,
-                        };
-                        setSavedVenues((prev) => [...prev, newVenue]);
-                        setLocation({
-                          address: location.address,
-                          venue: newVenue,
-                        });
-                      }}
                     />
                   ) : (
                     <ActionButton
@@ -685,8 +669,7 @@ export default function EventCreationPage() {
         onOpenChange={setLocationModalOpen}
         value={location}
         onChange={setLocation}
-        savedVenues={savedVenues}
-        onSaveVenue={handleSaveVenue}
+        recentlyUsed={recentlyUsedLocations}
       />
 
       {/* Ticket Modal */}
@@ -814,87 +797,23 @@ function CapacityDisplay({
 function LocationDisplay({
   location,
   onClick,
-  onSaveAsVenue,
 }: {
   location: LocationData;
   onClick: () => void;
-  onSaveAsVenue?: (name: string) => void;
 }) {
-  const [isSaving, setIsSaving] = useState(false);
-  const [venueName, setVenueName] = useState("");
-
-  const displayName = location.venue?.name || location.address;
-  const displayAddress = location.venue ? location.address : null;
-  const canSaveAsVenue = !location.venue && onSaveAsVenue;
-
-  const handleStartSave = () => {
-    setIsSaving(true);
-    setVenueName("");
-  };
-
-  const handleCancelSave = () => {
-    setIsSaving(false);
-    setVenueName("");
-  };
-
-  const handleConfirmSave = () => {
-    if (!venueName.trim() || !onSaveAsVenue) return;
-    onSaveAsVenue(venueName.trim());
-    setIsSaving(false);
-    setVenueName("");
-  };
-
-  if (isSaving) {
-    return (
-      <div className="w-full rounded-[14px] px-4 py-4 bg-light-gray">
-        <div className="flex-1 min-w-0">
-          <div className="text-base text-black mb-2 font-bold">
-            {location.address}
-          </div>
-          <input
-            type="text"
-            value={venueName}
-            onChange={(e) => setVenueName(e.target.value)}
-            placeholder="Enter venue name..."
-            className="w-full h-11 px-4 text-sm text-black placeholder:text-gray bg-white focus:outline-none border rounded-[10px] mb-3"
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleConfirmSave();
-              } else if (e.key === "Escape") {
-                handleCancelSave();
-              }
-            }}
-          />
-          <div className="flex gap-5 justify-end pr-1">
-            <button
-              onClick={handleCancelSave}
-              className="px-0 py-0 text-base font-semibold text-dark-gray hover:text-black transition-colors duration-200 ease cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirmSave}
-              disabled={!venueName.trim()}
-              className="px-0 py-0 text-base font-semibold text-tp-blue hover:text-[#2288ee] transition-colors duration-200 ease cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const isTbd = location.isTbd;
+  const displayName = isTbd ? "TBD" : location.venue?.name || location.address;
+  const displayAddress = !isTbd && location.venue ? location.address : null;
 
   return (
     <button
       onClick={onClick}
       className="w-full rounded-[14px] flex items-start gap-3 px-4 py-3 bg-light-gray cursor-pointer hover:bg-soft-gray transition-colors duration-200 ease"
     >
-      <MapPin className="w-4 h-4 text-black mt-1 shrink-0" />
+      <MapPin className={`w-4 h-4 mt-1 shrink-0 text-black`} />
       <div className="flex gap-3 min-w-0 flex-1 flex-wrap items-center justify-between">
         <div className=" flex flex-col gap-0.5">
-          <span className="font-bold text-base text-black w-fit">
+          <span className={`font-bold text-base w-fit text-black`}>
             {displayName}
           </span>
           {displayAddress && (
@@ -903,17 +822,6 @@ function LocationDisplay({
             </span>
           )}
         </div>
-        {canSaveAsVenue && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleStartSave();
-            }}
-            className="self-start text-base font-semibold text-tp-blue hover:opacity-80 transition-opacity duration-200 ease cursor-pointer py-0 h-5"
-          >
-            Save as venue
-          </button>
-        )}
       </div>
     </button>
   );
@@ -949,18 +857,17 @@ function SortableTicketDisplay({
 
   // Calculate pricing info
   const priceNum = parseFloat(ticket.price) || 0;
-  const extraFeeNum = parseFloat(ticket.extraFee) || 0;
   const platformFee = priceNum * PLATFORM_FEE_PERCENT;
 
   let youGet = 0;
   let buyerPays = 0;
 
   if (ticket.feeOption === "pass_to_buyer") {
-    youGet = priceNum + extraFeeNum;
-    buyerPays = priceNum + extraFeeNum + platformFee;
+    youGet = priceNum;
+    buyerPays = priceNum + platformFee;
   } else {
-    youGet = priceNum + extraFeeNum - platformFee;
-    buyerPays = priceNum + extraFeeNum;
+    youGet = priceNum - platformFee;
+    buyerPays = priceNum;
   }
 
   const formatCurrency = (amount: number) => {
